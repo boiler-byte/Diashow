@@ -1,0 +1,391 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <meta name="description" content="Diashow: Bilder, Ordner und ZIP-Archive lokal im Browser ansehen und als konfigurierbare Vollbild-Diashow abspielen. Kein Upload, keine Bildspeicherung.">
+  <title>Diashow</title>
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="app">
+    <header class="topbar">
+      <a class="brand" href="./" aria-label="Diashow – Startseite">
+        <span class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none">
+            <path d="M12 2.75c.36 4.9 4.35 8.89 9.25 9.25-4.9.36-8.89 4.35-9.25 9.25-.36-4.9-4.35-8.89-9.25-9.25 4.9-.36 8.89-4.35 9.25-9.25Z" fill="currentColor"/>
+          </svg>
+        </span>
+        <span class="brand-text">
+          <span class="brand-name">Diashow</span>
+          <span class="brand-sub">Bildergalerie</span>
+        </span>
+      </a>
+
+      <div class="topbar-right">
+        <button class="topbar-scroll" id="scroll-top" type="button" aria-label="Nach ganz oben scrollen" title="Nach ganz oben">
+          <svg viewBox="0 0 20 20" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 16V5M5.5 9.5 10 5l4.5 4.5"/><path d="M4 3h12"/></svg>
+        </button>
+        <button class="topbar-scroll" id="scroll-bottom" type="button" aria-label="Nach ganz unten scrollen" title="Nach ganz unten">
+          <svg viewBox="0 0 20 20" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 4v11M5.5 10.5 10 15l4.5-4.5"/><path d="M4 17h12"/></svg>
+        </button>
+      </div>
+    </header>
+
+    <main>
+      <section class="hero" id="hero" aria-labelledby="hero-title">
+        <div class="hero-copy">
+          <p class="eyebrow"><span aria-hidden="true"></span>Bilder ohne Spuren</p>
+          <h1 id="hero-title">Bilder, die nur<br><em>für jetzt</em> bleiben.</h1>
+          <p class="lede">Bilder, ganze Ordner oder ZIP-Archive hineinziehen und ansehen. Deine Bilder bleiben im Browser – kein Upload, keine Bildspeicherung.</p>
+
+          <ul class="feature-list" aria-label="Funktionen">
+            <li><span class="feature-dot" aria-hidden="true"></span>Rekursive Ordner &amp; ZIPs</li>
+            <li><span class="feature-dot" aria-hidden="true"></span>WebP · max. 1600 px</li>
+            <li><span class="feature-dot" aria-hidden="true"></span>Frei konfigurierbare Diashow</li>
+            <li><span class="feature-dot" aria-hidden="true"></span>Bilder nur im Arbeitsspeicher</li>
+          </ul>
+        </div>
+
+        <div class="importer">
+          <div class="importer-head">
+            <span class="importer-label"><span class="importer-index">01</span> Import</span>
+            <span class="importer-state" id="importer-state"><span class="mini-dot" aria-hidden="true"></span><span id="importer-state-text">Bereit</span></span>
+          </div>
+
+          <div class="dropzone" id="hero-dropzone">
+            <div class="drop-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3.25" y="5.25" width="12.5" height="12.5" rx="2.25"/>
+                <path d="M8.25 13.25l2.5-2.5 2 2 1.5-1.5 3.5 3.5"/>
+                <circle cx="8.6" cy="8.8" r=".9" fill="currentColor" stroke="none"/>
+                <path d="M8.25 20.75h10.5a2 2 0 0 0 2-2V8.25"/>
+              </svg>
+            </div>
+            <p class="drop-title">Dateien hier ablegen</p>
+            <p class="drop-sub">oder direkt auswählen oder einfügen</p>
+
+            <div class="button-row">
+              <button class="btn btn-primary js-pick-files" type="button">
+                <svg viewBox="0 0 20 20" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M10 4v12M4 10h12"/></svg>
+                Bilder &amp; ZIPs
+              </button>
+              <button class="btn btn-secondary js-pick-folder" type="button">
+                <svg viewBox="0 0 20 20" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 6a1.5 1.5 0 0 1 1.5-1.5h3.2l1.4 1.6H16A1.5 1.5 0 0 1 17.5 7.6v6.9A1.5 1.5 0 0 1 16 16H4a1.5 1.5 0 0 1-1.5-1.5V6Z"/></svg>
+                Ordner
+              </button>
+              <button class="btn btn-secondary js-paste" type="button" title="Aus der Zwischenablage einfügen">
+                <svg viewBox="0 0 20 20" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="4" width="10" height="13" rx="1.7"/><path d="M7.5 4V2.8h5V4"/><path d="M7.5 8.5h5M7.5 11.5h3.5"/></svg>
+                Einfügen
+                <kbd>Strg&nbsp;V</kbd>
+              </button>
+            </div>
+
+            <p class="drop-hint">JPG · PNG · WebP · GIF · ZIP <span aria-hidden="true">/</span> Ordner &amp; Archive werden rekursiv gelesen</p>
+          </div>
+
+          <div class="conversion-note">
+            <svg viewBox="0 0 20 20" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 2.5v3M10 14.5v3M2.5 10h3M14.5 10h3M4.7 4.7l2.1 2.1M13.2 13.2l2.1 2.1M15.3 4.7l-2.1 2.1M6.8 13.2l-2.1 2.1"/></svg>
+            <p><strong>Automatisch optimiert:</strong> Bilder über 1600 px Breite oder 200 KB werden beim Import zu WebP und auf maximal 1600 px Breite reduziert. Kleinere Bilder bleiben unverändert.</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="gallery-section" id="gallery-section" hidden aria-labelledby="gallery-title">
+        <div class="gallery-head">
+          <div class="gallery-heading">
+            <p class="eyebrow"><span aria-hidden="true"></span>Deine Sammlung</p>
+            <h2 id="gallery-title">Galerie <span class="count-badge" id="count-badge">0</span></h2>
+            <p class="gallery-meta" id="gallery-meta">Noch keine Bilder</p>
+          </div>
+
+          <div class="gallery-actions">
+            <button class="btn btn-primary js-pick-files" type="button">
+              <svg viewBox="0 0 20 20" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M10 4v12M4 10h12"/></svg>
+              Hinzufügen
+            </button>
+            <button class="btn btn-secondary js-pick-folder" type="button" title="Ordner auswählen">
+              <svg viewBox="0 0 20 20" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 6a1.5 1.5 0 0 1 1.5-1.5h3.2l1.4 1.6H16A1.5 1.5 0 0 1 17.5 7.6v6.9A1.5 1.5 0 0 1 16 16H4a1.5 1.5 0 0 1-1.5-1.5V6Z"/></svg>
+              Ordner
+            </button>
+            <button class="btn btn-secondary js-paste" type="button" title="Aus der Zwischenablage einfügen">
+              <svg viewBox="0 0 20 20" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="4" width="10" height="13" rx="1.7"/><path d="M7.5 4V2.8h5V4"/><path d="M7.5 8.5h5M7.5 11.5h3.5"/></svg>
+              Einfügen
+            </button>
+            <button class="btn btn-secondary slideshow-launch" id="slideshow-launch" type="button" title="Diashow starten">
+              <svg viewBox="0 0 20 20" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4.5" width="14" height="11" rx="2"/><path d="m8.3 8 3.7 2-3.7 2V8Z" fill="currentColor" stroke="none"/></svg>
+              Diashow
+            </button>
+            <span class="action-divider" aria-hidden="true"></span>
+            <button class="btn btn-quiet btn-danger js-clear-all" type="button" id="clear-all">
+              <svg viewBox="0 0 20 20" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 5.5h13M8 2.75h4M5.25 5.5l.7 10.25a1.5 1.5 0 0 0 1.5 1.4h5.1a1.5 1.5 0 0 0 1.5-1.4l.7-10.25"/><path d="M8.25 8.5v5.75M11.75 8.5v5.75"/></svg>
+              Leeren
+            </button>
+          </div>
+        </div>
+
+        <div class="gallery" id="gallery" aria-label="Bildergalerie"></div>
+
+      </section>
+
+    </main>
+
+    <footer class="site-footer" aria-hidden="true"></footer>
+  </div>
+
+  <!-- Globale Drop-Fläche -->
+  <div class="drop-overlay" id="drop-overlay" hidden aria-hidden="true">
+    <div class="drop-overlay-inner">
+      <div class="drop-overlay-icon">
+        <svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V3.5M7 8.5 12 3.5l5 5"/><path d="M4 13.5v5A2.5 2.5 0 0 0 6.5 21h11a2.5 2.5 0 0 0 2.5-2.5v-5"/></svg>
+      </div>
+      <p>Zum Hinzufügen ablegen</p>
+      <span>Bilder, Ordner oder ZIP-Archive · rekursiv</span>
+    </div>
+  </div>
+
+  <!-- Importfortschritt -->
+  <div class="progress-panel" id="progress-panel" hidden role="status" aria-live="polite">
+    <div class="progress-head">
+      <span class="spinner" aria-hidden="true"></span>
+      <span class="progress-title" id="progress-title">Import läuft</span>
+      <span class="progress-count" id="progress-count"></span>
+    </div>
+    <p class="progress-detail" id="progress-detail">Dateien werden vorbereitet …</p>
+    <div class="progress-track" id="progress-track"><span id="progress-bar"></span></div>
+  </div>
+
+  <!-- Bildansicht -->
+  <div class="lightbox" id="lightbox" hidden>
+    <div class="lightbox-backdrop" data-lightbox-close></div>
+    <div class="lightbox-shell" role="dialog" aria-modal="true" aria-labelledby="lightbox-name" aria-describedby="lightbox-meta">
+      <header class="lightbox-bar">
+        <div class="lightbox-heading">
+          <p class="lightbox-name" id="lightbox-name"></p>
+          <p class="lightbox-meta" id="lightbox-meta"></p>
+        </div>
+        <div class="lightbox-actions">
+          <button class="lightbox-slideshow" id="lightbox-slideshow" type="button" aria-label="Diashow ab diesem Bild starten" title="Diashow ab diesem Bild starten">
+            <svg viewBox="0 0 20 20" width="14" height="14" fill="currentColor" aria-hidden="true"><path d="M7 4.4c0-.8.9-1.3 1.6-.9l8.1 5.6c.6.4.6 1.3 0 1.7l-8.1 5.6c-.7.5-1.6 0-1.6-.9V4.4Z"/></svg>
+            <span>Diashow</span>
+          </button>
+          <button class="icon-button lightbox-close" type="button" id="lightbox-close" aria-label="Bildansicht schließen">
+            <svg viewBox="0 0 20 20" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="m5 5 10 10M15 5 5 15"/></svg>
+          </button>
+        </div>
+      </header>
+
+      <div class="lightbox-stage">
+        <button class="lightbox-arrow prev" type="button" id="lightbox-prev" aria-label="Vorheriges Bild">
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="m14.5 5.5-6.5 6.5 6.5 6.5"/></svg>
+        </button>
+        <div class="lightbox-image-wrap">
+          <img id="lightbox-image" alt="" draggable="false">
+        </div>
+        <button class="lightbox-arrow next" type="button" id="lightbox-next" aria-label="Nächstes Bild">
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="m9.5 5.5 6.5 6.5-6.5 6.5"/></svg>
+        </button>
+      </div>
+
+      <footer class="lightbox-foot">
+        <span class="lightbox-counter" id="lightbox-counter"></span>
+        <span class="lightbox-hint"><kbd>←</kbd><kbd>→</kbd> wechseln <span aria-hidden="true">·</span> <kbd>Esc</kbd> schließen</span>
+      </footer>
+    </div>
+  </div>
+
+  <!-- Diashow -->
+  <div class="slideshow" id="slideshow" hidden role="dialog" aria-modal="true" aria-label="Diashow" tabindex="-1">
+    <div class="slideshow-stage" id="slideshow-stage" aria-hidden="true"></div>
+    <div class="slideshow-scrim" aria-hidden="true"></div>
+
+    <div class="slideshow-ui" id="slideshow-ui">
+      <header class="slideshow-top">
+        <div class="slideshow-identity">
+          <span class="slideshow-live" aria-hidden="true"></span>
+          <span class="slideshow-kicker">Diashow</span>
+        </div>
+        <div class="slideshow-controls">
+          <span class="slideshow-position" id="slideshow-position"></span>
+          <button class="slideshow-control slideshow-toggle" type="button" id="slideshow-settings" aria-label="Diashow-Setup öffnen" aria-expanded="false" aria-controls="slideshow-settings-panel" title="Diashow-Setup">
+            <svg viewBox="0 0 20 20" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.75 5.5h6M12.25 5.5h5M2.75 10h9M15.25 10h2M2.75 14.5h3.5M10.25 14.5h7"/><circle cx="10.25" cy="5.5" r="1.9"/><circle cx="13.75" cy="10" r="1.9"/><circle cx="8.75" cy="14.5" r="1.9"/></svg>
+          </button>
+          <button class="slideshow-control slideshow-toggle" type="button" id="slideshow-shuffle" aria-label="Zufällige Reihenfolge umschalten" aria-pressed="false" title="Shuffle – zufällige Reihenfolge">
+            <svg viewBox="0 0 20 20" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 6h2.7c4.1 0 5.5 8 9.6 8h2.7"/><path d="m15 11.5 2.5 2.5-2.5 2.5"/><path d="M2.5 14h2.7c1.4 0 2.4-.8 3.3-2"/><path d="M10.9 7.8c.9-1.1 2-1.8 3.9-1.8h2.7"/><path d="m15 3.5 2.5 2.5-2.5 2.5"/></svg>
+          </button>
+          <button class="slideshow-control slideshow-toggle" type="button" id="slideshow-fit" aria-label="Fit Size umschalten" aria-pressed="false" title="Fit Size – ganzes Bild einpassen">
+            <svg viewBox="0 0 20 20" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7.5 3H3v4.5M12.5 3H17v4.5M7.5 17H3v-4.5M12.5 17H17v-4.5"/><rect x="6.5" y="6.5" width="7" height="7" rx="1" opacity=".55"/></svg>
+          </button>
+          <button class="slideshow-control" type="button" id="slideshow-pause" aria-label="Diashow pausieren" title="Pausieren (Leertaste)">
+            <svg viewBox="0 0 20 20" width="17" height="17" fill="currentColor" aria-hidden="true"><rect x="5.5" y="4" width="3" height="12" rx="1"/><rect x="11.5" y="4" width="3" height="12" rx="1"/></svg>
+          </button>
+          <button class="slideshow-control" type="button" id="slideshow-close" aria-label="Diashow beenden" title="Beenden (Esc)">
+            <svg viewBox="0 0 20 20" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><path d="m5 5 10 10M15 5 5 15"/></svg>
+          </button>
+        </div>
+      </header>
+
+      <aside class="slideshow-settings" id="slideshow-settings-panel" aria-label="Diashow-Setup" hidden>
+        <div class="slideshow-settings-head">
+          <div>
+            <p class="slideshow-settings-kicker">Setup</p>
+            <h2 class="slideshow-settings-title">Diashow</h2>
+          </div>
+          <button class="slideshow-settings-close" id="slideshow-settings-close" type="button" aria-label="Setup schließen">
+            <svg viewBox="0 0 20 20" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><path d="m5 5 10 10M15 5 5 15"/></svg>
+          </button>
+        </div>
+
+        <div class="slideshow-config">
+          <label class="slideshow-config-field slideshow-config-field-wide">
+            <span class="slideshow-config-label">Transition</span>
+            <span class="slideshow-select-wrap">
+              <select class="slideshow-select" id="slideshow-config-transition">
+                <option value="off">Off</option>
+                <option value="fadeblack" selected>Fade Black</option>
+                <option value="crossfade">Crossfade</option>
+                <option value="slide">Slide</option>
+                <option value="zoom">Zoom</option>
+                <option value="flip">Flip</option>
+                <option value="wipe">Wipe</option>
+                <option value="random">Random</option>
+              </select>
+            </span>
+          </label>
+
+          <label class="slideshow-config-field">
+            <span class="slideshow-config-label">Zoom</span>
+            <span class="slideshow-select-wrap">
+              <select class="slideshow-select" id="slideshow-config-zoom">
+                <option value="off">Off</option>
+                <option value="in" selected>In</option>
+                <option value="out">Out</option>
+                <option value="random">Random</option>
+              </select>
+            </span>
+          </label>
+
+          <label class="slideshow-config-field">
+            <span class="slideshow-config-label">Move</span>
+            <span class="slideshow-select-wrap">
+              <select class="slideshow-select" id="slideshow-config-move">
+                <option value="off" selected>Off</option>
+                <option value="left">Left</option>
+                <option value="right">Right</option>
+                <option value="up">Up</option>
+                <option value="down">Down</option>
+                <option value="pan">Pan</option>
+                <option value="random">Random</option>
+              </select>
+            </span>
+          </label>
+
+          <label class="slideshow-config-field">
+            <span class="slideshow-config-label">Bilder gleichzeitig</span>
+            <span class="slideshow-select-wrap">
+              <select class="slideshow-select" id="slideshow-config-images">
+                <option value="1" selected>1</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+                <option value="4">4</option>
+                <option value="5">5</option>
+                <option value="6">6</option>
+                <option value="7">7</option>
+                <option value="8">8</option>
+                <option value="9">9</option>
+                <option value="10">10</option>
+                <option value="11">11</option>
+                <option value="12">12</option>
+                <option value="13">13</option>
+                <option value="14">14</option>
+                <option value="15">15</option>
+                <option value="16">16</option>
+                <option value="17">17</option>
+                <option value="18">18</option>
+                <option value="19">19</option>
+                <option value="20">20</option>
+                <option value="21">21</option>
+                <option value="random">Random</option>
+              </select>
+            </span>
+          </label>
+
+          <label class="slideshow-config-field">
+            <span class="slideshow-config-label">Intervall</span>
+            <span class="slideshow-select-wrap">
+              <select class="slideshow-select" id="slideshow-config-interval">
+                <option value="3">3 Sekunden</option>
+                <option value="4">4 Sekunden</option>
+                <option value="5">5 Sekunden</option>
+                <option value="6" selected>6 Sekunden</option>
+                <option value="8">8 Sekunden</option>
+                <option value="10">10 Sekunden</option>
+                <option value="15">15 Sekunden</option>
+                <option value="20">20 Sekunden</option>
+              </select>
+            </span>
+          </label>
+
+          <label class="slideshow-config-field slideshow-config-field-wide">
+            <span class="slideshow-config-label">Layout (bei mehreren Bildern)</span>
+            <span class="slideshow-select-wrap">
+              <select class="slideshow-select" id="slideshow-config-layout">
+                <option value="grid" selected>Grid</option>
+                <option value="masonry">Masonry</option>
+                <option value="carousel">Carousel</option>
+                <option value="stack">Stack</option>
+                <option value="random">Random</option>
+              </select>
+            </span>
+          </label>
+        </div>
+
+        <p class="slideshow-menu-note"><span aria-hidden="true">✦</span>Random: Jedes Bild verhält sich anders.</p>
+        <p class="slideshow-settings-hint">Änderungen wirken sofort · Setup wird lokal gespeichert.</p>
+      </aside>
+
+      <button class="slideshow-arrow prev" type="button" id="slideshow-prev" aria-label="Vorheriges Bild">
+        <svg viewBox="0 0 24 24" width="23" height="23" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m14.5 5.5-6.5 6.5 6.5 6.5"/></svg>
+      </button>
+      <button class="slideshow-arrow next" type="button" id="slideshow-next" aria-label="Nächstes Bild">
+        <svg viewBox="0 0 24 24" width="23" height="23" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9.5 5.5 6.5 6.5-6.5 6.5"/></svg>
+      </button>
+
+      <footer class="slideshow-bottom">
+        <div class="slideshow-caption-wrap">
+          <p class="slideshow-caption" id="slideshow-caption"></p>
+          <p class="slideshow-sub" id="slideshow-sub"></p>
+        </div>
+        <p class="slideshow-hint"><kbd>Leertaste</kbd> Pause <span aria-hidden="true">·</span> <kbd>Esc</kbd> beenden</p>
+      </footer>
+
+      <div class="slideshow-progress" aria-hidden="true"><span id="slideshow-progress-bar"></span></div>
+    </div>
+  </div>
+
+  <!-- Bestätigung -->
+  <dialog class="confirm-dialog" id="clear-dialog">
+    <form method="dialog">
+      <div class="dialog-mark" aria-hidden="true">
+        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M9 3.5h6M6.25 7l.8 12.25a1.75 1.75 0 0 0 1.75 1.65h7.4a1.75 1.75 0 0 0 1.75-1.65L18.75 7"/><path d="M10 11v6M14 11v6"/></svg>
+      </div>
+      <h2>Galerie leeren?</h2>
+      <p id="clear-dialog-text">Alle Bilder werden aus dem Arbeitsspeicher entfernt. Das lässt sich nicht rückgängig machen.</p>
+      <div class="dialog-actions">
+        <button class="btn btn-secondary" value="cancel" autofocus>Abbrechen</button>
+        <button class="btn btn-danger-solid" value="confirm">Alles entfernen</button>
+      </div>
+    </form>
+  </dialog>
+
+  <div class="toast-region" id="toast-region" aria-live="polite" aria-atomic="false"></div>
+
+  <input type="file" id="file-input" class="visually-hidden" multiple
+         accept=".jpg,.jpeg,.png,.webp,.gif,.zip,image/jpeg,image/png,image/webp,image/gif,application/zip,application/x-zip-compressed">
+  <input type="file" id="folder-input" class="visually-hidden" webkitdirectory directory multiple>
+
+  <script src="app.js" defer></script>
+</body>
+</html>
