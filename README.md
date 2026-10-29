@@ -36,11 +36,11 @@ Der **Diashow**-Button in der Werkzeugleiste startet die Vollbild-Diashow direkt
 | **Transition** | Off, Fade Black, Crossfade, Slide, Zoom, Flip, Wipe, Random | Fade Black |
 | **Zoom** | Off, In, Out, Random | In |
 | **Move** | Off, Left, Right, Up, Down, Pan, Random | Off |
-| **Bilder gleichzeitig** | 1–21, Random | 1 |
+| **Bilder gleichzeitig** | 1–21, Random 1–21, Random 1–3, Random 3–5, Random 3–7 | 1 |
 | **Intervall** | 3, 4, 5, 6, 8, 10, 15, 20 Sekunden | 6 Sekunden |
 | **Layout** | Grid, Masonry, Carousel, Stack, Random | Grid |
 
-Änderungen im Setup wirken sofort und werden im `localStorage` gespeichert, sodass sie ein Neuladen der Seite überstehen. **Random** wird pro Bild aufgelöst: Zoom wechselt zwischen In und Out, Move verwendet unterschiedliche Richtungen, die Bildanzahl und das Layout können pro Szene variieren und Transitions werden bei jedem Wechsel neu gewählt.
+Änderungen im Setup wirken sofort und werden im `localStorage` gespeichert, sodass sie ein Neuladen der Seite überstehen. Der laufende Intervall-Countdown wird dabei nicht neu gestartet. **Random** wird pro Bild aufgelöst: Zoom wechselt zwischen In und Out, Move verwendet unterschiedliche Richtungen, die Bildanzahl und das Layout können pro Szene variieren und Transitions werden bei jedem Wechsel neu gewählt.
 
 Die Diashow läuft automatisch weiter. Über den Button oder **Leertaste** lässt sie sich pausieren und fortsetzen; mit `←` / `→` kann man manuell wechseln, mit `Esc` beendet man sie. Das Setup schließt sich mit `Esc` zuerst, bevor die Diashow beendet wird. Der Fortschrittsbalken unten zeigt die Zeit bis zum nächsten Wechsel. Bei nur einem Bild bleibt die Ansicht statisch, die Navigation ist dann deaktiviert.
 
@@ -51,9 +51,12 @@ Zusätzliche Buttons in der Diashow:
 - **Setup** (Regler): öffnet die Transition-, Zoom-, Move-, Bilder-, Intervall- und Layout-Einstellungen.
 - **Shuffle**: aktiviert eine zufällige Reihenfolge und behält das aktuelle Bild als Ausgangspunkt.
 - **Fit Size**: zeigt das vollständige Bild statt eines bildfüllenden Ausschnitts. Transitionen, Zoom und Move wirken weiterhin.
+- **Movement-Bypass**: setzt Zoom, Move und den Carousel-Lauf aus (standardmäßig aus, aktiv mit rotem Icon).
 - **Pause/Play** und **Beenden**.
 
-Zoom und Move laufen als endlose Hin-und-zurück-Bewegung weiter, auch wenn die Diashow pausiert ist. Die Carousel-Geschwindigkeit bleibt unabhängig von der Bildanzahl konstant. Im Stack-Layout werden die Bilder von hinten nach vorn kleiner, sodass die dahinterliegenden Bilder sichtbar bleiben.
+Mit einer horizontalen Wischgeste auf Touch-Geräten lässt sich die Diashow nach links oder rechts wechseln.
+
+Zoom und Move laufen als endlose Hin-und-zurück-Bewegung weiter, auch wenn die Diashow pausiert ist. Das Carousel läuft als endlose Schleife mit konstanter Geschwindigkeit, unabhängig von der Bildanzahl. Im Stack-Layout werden die Bilder von hinten nach vorn kleiner und nach rechts unten versetzt, sodass die dahinterliegenden Bilder sichtbar bleiben.
 
 ## Verarbeitungsregeln
 

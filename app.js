@@ -40,7 +40,12 @@
 
   const MAX_SLIDESHOW_IMAGES = 21;
   const SLIDESHOW_UI_IDLE_MS = 5000;
-  const SLIDESHOW_CAROUSEL_SPEED = 200;
+  const SLIDESHOW_CAROUSEL_SPEED = 100;
+  const SLIDESHOW_RANDOM_IMAGE_RANGES = Object.freeze({
+    'random-1-3': [1, 3],
+    'random-3-5': [3, 5],
+    'random-3-7': [3, 7]
+  });
   const SLIDESHOW_STORAGE_KEY = 'fluechtige-galerie.slideshow-config.v1';
   const SLIDESHOW_CONFIG_DEFAULTS = Object.freeze({
     transition: 'fadeblack',
@@ -56,7 +61,8 @@
     move: new Set(['off', 'left', 'right', 'up', 'down', 'pan', 'random']),
     images: new Set([
       ...Array.from({ length: MAX_SLIDESHOW_IMAGES }, (_, index) => String(index + 1)),
-      'random'
+      'random',
+      ...Object.keys(SLIDESHOW_RANDOM_IMAGE_RANGES)
     ]),
     interval: new Set(['3', '4', '5', '6', '8', '10', '15', '20']),
     layout: new Set(['grid', 'masonry', 'carousel', 'stack', 'random'])
@@ -133,6 +139,7 @@
     slideshowPause: byId('slideshow-pause'),
     slideshowShuffle: byId('slideshow-shuffle'),
     slideshowFit: byId('slideshow-fit'),
+    slideshowMovementBypass: byId('slideshow-movement-bypass'),
     slideshowClose: byId('slideshow-close'),
     slideshowPrev: byId('slideshow-prev'),
     slideshowNext: byId('slideshow-next'),
@@ -166,6 +173,7 @@
       order: [],
       shuffle: false,
       fit: false,
+      movementBypass: false,
       config: { ...SLIDESHOW_CONFIG_DEFAULTS },
       panelCount: 1,
       transitionDuration: 0,
@@ -181,6 +189,7 @@
   let galleryWidth = 0;
   let galleryLayout = null;
   let slideshowUiTimer = 0;
+  let slideshowSwipeStart = null;
 
   const numberFormat = new Intl.NumberFormat('de-DE', { maximumFractionDigits: 1 });
   const byteIntegerFormat = new Intl.NumberFormat('de-DE');
@@ -1749,6 +1758,7 @@
     });
     dom.slideshowShuffle.addEventListener('click', toggleSlideshowShuffle);
     dom.slideshowFit.addEventListener('click', toggleSlideshowFit);
+    dom.slideshowMovementBypass.addEventListener('click', toggleSlideshowMovementBypass);
     dom.slideshowClose.addEventListener('click', closeSlideshow);
     dom.slideshowPrev.addEventListener('click', () => stepSlideshow(-1));
     dom.slideshowNext.addEventListener('click', () => stepSlideshow(1));
@@ -1756,6 +1766,16 @@
     for (const eventName of ['pointermove', 'pointerdown', 'wheel', 'touchstart']) {
       dom.slideshow.addEventListener(eventName, handleSlideshowActivity, { passive: true });
     }
+
+    dom.slideshow.addEventListener('touchstart', handleSlideshowTouchStart, { passive: true });
+    dom.slideshow.addEventListener('touchend', handleSlideshowTouchEnd, { passive: true });
+    dom.slideshow.addEventListener(
+      'touchcancel',
+      () => {
+        slideshowSwipeStart = null;
+      },
+      { passive: true }
+    );
 
     document.addEventListener('keydown', handleSlideshowKeydown);
   }
@@ -1815,20 +1835,15 @@
     return Number.isFinite(seconds) && seconds > 0 ? seconds * 1000 : 6000;
   }
 
-  function handleSlideshowConfigChange(event) {
+  function handleSlideshowConfigChange() {
     updateSlideshowConfigFromInputs();
     if (!state.slideshow.active) return;
 
     showSlideshowUi();
 
-    if (event.target === dom.slideshowConfigInterval) {
-      resetSlideshowTimer(getSlideshowIntervalMs());
-      return;
-    }
-
-    // Alle anderen Einstellungen werden sofort auf die aktuelle Szene
-    // angewendet, damit die Auswahl direkt sichtbar wird.
-    renderSlideshowScene();
+    // Setup-Änderungen werden sofort auf die aktuelle Szene angewendet,
+    // ohne den laufenden Intervall-Countdown neu zu starten.
+    renderSlideshowScene(false, true);
   }
 
   function openSlideshowSettings() {
@@ -1908,6 +1923,42 @@
     }
   }
 
+  function handleSlideshowTouchStart(event) {
+    slideshowSwipeStart = null;
+    if (!state.slideshow.active || event.touches.length !== 1) return;
+
+    const target = event.target;
+    if (
+      target instanceof Element &&
+      target.closest('button, a, select, input, textarea, .slideshow-settings')
+    ) {
+      return;
+    }
+
+    const touch = event.touches[0];
+    slideshowSwipeStart = {
+      x: touch.clientX,
+      y: touch.clientY
+    };
+  }
+
+  function handleSlideshowTouchEnd(event) {
+    const start = slideshowSwipeStart;
+    slideshowSwipeStart = null;
+
+    if (!start || !state.slideshow.active) return;
+
+    const touch = event.changedTouches[0];
+    if (!touch) return;
+
+    const deltaX = touch.clientX - start.x;
+    const deltaY = touch.clientY - start.y;
+
+    if (Math.abs(deltaX) < 45 || Math.abs(deltaX) < Math.abs(deltaY) * 1.2) return;
+
+    stepSlideshow(deltaX < 0 ? 1 : -1);
+  }
+
   function shuffleArray(items) {
     for (let index = items.length - 1; index > 0; index -= 1) {
       const swapIndex = Math.floor(Math.random() * (index + 1));
@@ -1952,6 +2003,13 @@
     updateSlideshowToggleStates();
   }
 
+  function toggleSlideshowMovementBypass() {
+    if (!state.slideshow.active) return;
+
+    state.slideshow.movementBypass = !state.slideshow.movementBypass;
+    updateSlideshowToggleStates();
+  }
+
   function updateSlideshowToggleStates() {
     const slideshow = state.slideshow;
 
@@ -1969,7 +2027,17 @@
       slideshow.fit ? 'Fit Size deaktivieren' : 'Fit Size aktivieren – ganzes Bild einpassen'
     );
 
+    dom.slideshowMovementBypass.classList.toggle('is-active', slideshow.movementBypass);
+    dom.slideshowMovementBypass.setAttribute('aria-pressed', String(slideshow.movementBypass));
+    dom.slideshowMovementBypass.setAttribute(
+      'aria-label',
+      slideshow.movementBypass
+        ? 'Movement-Bypass deaktivieren'
+        : 'Movement-Bypass aktivieren – Bewegung aussetzen'
+    );
+
     dom.slideshow.classList.toggle('is-fit', slideshow.fit);
+    dom.slideshow.classList.toggle('is-movement-bypassed', slideshow.movementBypass);
   }
 
   function getTransitionLabel(value) {
@@ -1989,11 +2057,16 @@
     const slideshow = state.slideshow;
     const maximum = Math.min(MAX_SLIDESHOW_IMAGES, count);
     const configured = slideshow.config.images;
+    const randomRange = SLIDESHOW_RANDOM_IMAGE_RANGES[configured];
 
-    if (configured === 'random') {
-      let value = 1 + Math.floor(Math.random() * maximum);
-      if (maximum > 1 && slideshow.panelCount > 0 && value === slideshow.panelCount) {
-        value = (value % maximum) + 1;
+    if (configured === 'random' || randomRange) {
+      const [rangeMin, rangeMax] = randomRange || [1, MAX_SLIDESHOW_IMAGES];
+      const upper = Math.max(1, Math.min(rangeMax, maximum));
+      const lower = Math.max(1, Math.min(rangeMin, upper));
+      let value = lower + Math.floor(Math.random() * (upper - lower + 1));
+
+      if (upper > lower && slideshow.panelCount > 0 && value === slideshow.panelCount) {
+        value = value < upper ? value + 1 : lower;
       }
       return value;
     }
@@ -2079,6 +2152,7 @@
     slideshow.panelCount = 0;
     slideshow.transitionDuration = 0;
     slideshow.paused = false;
+    slideshow.movementBypass = false;
     slideshow.remaining = getSlideshowIntervalMs();
     slideshow.startedAt = performance.now();
     slideshow.layerZ = 0;
@@ -2112,9 +2186,11 @@
     clearSlideshowPreloads();
     clearSlideshowUiTimer();
     closeSlideshowSettings();
+    slideshowSwipeStart = null;
 
     slideshow.active = false;
     slideshow.paused = false;
+    slideshow.movementBypass = false;
     slideshow.index = 0;
     slideshow.layerZ = 0;
     slideshow.panelCount = 0;
@@ -2123,7 +2199,7 @@
     slideshow.order = [];
 
     dom.slideshow.hidden = true;
-    dom.slideshow.classList.remove('is-paused', 'is-fit', 'is-ui-hidden');
+    dom.slideshow.classList.remove('is-paused', 'is-fit', 'is-movement-bypassed', 'is-ui-hidden');
     dom.slideshowUi.inert = false;
     dom.slideshowUi.setAttribute('aria-hidden', 'false');
     dom.slideshowStage.replaceChildren();
@@ -2264,11 +2340,15 @@
     entries.forEach((entry, index) => {
       const progress = count <= 1 ? 0 : index / (count - 1);
       const scale = 1 - progress * 0.3;
+      const spread = progress * 4.5;
       const wobble = Math.sin(index * 1.7);
 
       entry.panel.style.zIndex = String(index + 1);
-      entry.panel.style.setProperty('--stack-x', `${(wobble * 0.8).toFixed(2)}%`);
-      entry.panel.style.setProperty('--stack-y', `${(Math.cos(index * 1.3) * 0.8).toFixed(2)}%`);
+      entry.panel.style.setProperty('--stack-x', `${(spread + wobble * 0.6).toFixed(2)}%`);
+      entry.panel.style.setProperty(
+        '--stack-y',
+        `${(spread + Math.cos(index * 1.3) * 0.6).toFixed(2)}%`
+      );
       entry.panel.style.setProperty('--stack-rotate', `${(wobble * 0.5).toFixed(2)}deg`);
       entry.panel.style.setProperty('--stack-scale', scale.toFixed(3));
       scene.appendChild(entry.panel);
@@ -2279,13 +2359,34 @@
     const track = scene.querySelector('.slideshow-carousel-track');
     if (!track) return;
 
-    const distance = track.scrollWidth - scene.clientWidth;
-    if (distance <= 8) return;
+    const originals = Array.from(track.children);
+    if (!originals.length) return;
+
+    // Genug Kopien anhängen, damit der Filmstreifen während des gesamten
+    // Loops lückenlos den Viewport füllt.
+    const viewportWidth = scene.clientWidth || window.innerWidth;
+    const setWidth = track.scrollWidth;
+    if (setWidth <= 0) return;
+
+    const copyCount = Math.max(2, Math.ceil(viewportWidth / setWidth) + 1);
+    for (let copy = 1; copy < copyCount; copy += 1) {
+      for (const node of originals) {
+        const clone = node.cloneNode(true);
+        clone.setAttribute('aria-hidden', 'true');
+        track.appendChild(clone);
+      }
+    }
+
+    const firstOriginal = track.children[0];
+    const firstClone = track.children[originals.length];
+    const period = firstClone.offsetLeft - firstOriginal.offsetLeft;
+    if (period <= 8) return;
 
     scene.classList.add('is-carousel-wide');
+    track.style.setProperty('--carousel-shift', `-${period}px`);
     // Konstante Pixelgeschwindigkeit: mehr Bilder verlängern die Strecke,
     // nicht die Geschwindigkeit.
-    track.style.animationDuration = `${(distance / SLIDESHOW_CAROUSEL_SPEED) * 1000}ms`;
+    track.style.animationDuration = `${(period / SLIDESHOW_CAROUSEL_SPEED) * 1000}ms`;
     track.classList.add('is-scrolling');
   }
 
@@ -2297,7 +2398,7 @@
     }
   }
 
-  function renderSlideshowScene(isInitial = false) {
+  function renderSlideshowScene(isInitial = false, preserveTimer = false) {
     const slideshow = state.slideshow;
     if (!slideshow.active) return;
 
@@ -2392,7 +2493,7 @@
     dom.slideshowNext.disabled = !canAdvance;
 
     preloadUpcomingSlideshowImages();
-    resetSlideshowTimer(getSlideshowIntervalMs());
+    if (!preserveTimer) resetSlideshowTimer(getSlideshowIntervalMs());
   }
 
   function stepSlideshow(direction) {
@@ -2482,9 +2583,12 @@
 
     const step = Math.max(1, slideshow.panelCount);
     const configured = slideshow.config.images;
+    const randomRange = SLIDESHOW_RANDOM_IMAGE_RANGES[configured];
     const loadCount = configured === 'random'
       ? Math.min(MAX_SLIDESHOW_IMAGES, count)
-      : Math.min(count, Math.max(1, Number.parseInt(configured, 10) || 1));
+      : randomRange
+        ? Math.min(count, randomRange[1])
+        : Math.min(count, Math.max(1, Number.parseInt(configured, 10) || 1));
 
     for (let offset = 0; offset < loadCount; offset += 1) {
       const image = slideshow.order[(slideshow.index + step + offset) % count];

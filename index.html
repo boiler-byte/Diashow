@@ -93,11 +93,10 @@
         </div>
       </section>
 
-      <section class="gallery-section" id="gallery-section" hidden aria-labelledby="gallery-title">
+      <section class="gallery-section" id="gallery-section" hidden aria-label="Deine Sammlung">
         <div class="gallery-head">
           <div class="gallery-heading">
-            <p class="eyebrow"><span aria-hidden="true"></span>Deine Sammlung</p>
-            <h2 id="gallery-title">Galerie <span class="count-badge" id="count-badge">0</span></h2>
+            <p class="eyebrow"><span aria-hidden="true"></span>Deine Sammlung <span class="count-badge" id="count-badge">0</span></p>
             <p class="gallery-meta" id="gallery-meta">Noch keine Bilder</p>
           </div>
 
@@ -218,6 +217,9 @@
           <button class="slideshow-control slideshow-toggle" type="button" id="slideshow-fit" aria-label="Fit Size umschalten" aria-pressed="false" title="Fit Size – ganzes Bild einpassen">
             <svg viewBox="0 0 20 20" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7.5 3H3v4.5M12.5 3H17v4.5M7.5 17H3v-4.5M12.5 17H17v-4.5"/><rect x="6.5" y="6.5" width="7" height="7" rx="1" opacity=".55"/></svg>
           </button>
+          <button class="slideshow-control slideshow-toggle slideshow-movement-bypass" type="button" id="slideshow-movement-bypass" aria-label="Movement-Bypass aktivieren" aria-pressed="false" title="Movement-Bypass – Bewegung aussetzen">
+            <svg viewBox="0 0 20 20" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6.5h8.5a2.5 2.5 0 1 0-2.5-2.5"/><path d="M3 10h11a2.5 2.5 0 1 1-2.5 2.5"/><path d="M3 13.5h4.5"/><path d="m3.2 3.2 13.6 13.6"/></svg>
+          </button>
           <button class="slideshow-control" type="button" id="slideshow-pause" aria-label="Diashow pausieren" title="Pausieren (Leertaste)">
             <svg viewBox="0 0 20 20" width="17" height="17" fill="currentColor" aria-hidden="true"><rect x="5.5" y="4" width="3" height="12" rx="1"/><rect x="11.5" y="4" width="3" height="12" rx="1"/></svg>
           </button>
@@ -307,7 +309,10 @@
                 <option value="19">19</option>
                 <option value="20">20</option>
                 <option value="21">21</option>
-                <option value="random">Random</option>
+                <option value="random">Random 1–21</option>
+                <option value="random-1-3">Random 1–3</option>
+                <option value="random-3-5">Random 3–5</option>
+                <option value="random-3-7">Random 3–7</option>
               </select>
             </span>
           </label>

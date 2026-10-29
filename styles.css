@@ -282,7 +282,7 @@ main {
   text-transform: uppercase;
 }
 
-.eyebrow > span {
+.eyebrow > span:not(.count-badge) {
   display: block;
   width: 25px;
   height: 1px;
@@ -1901,6 +1901,22 @@ kbd {
   background: rgba(46, 56, 24, 0.72);
 }
 
+.slideshow-control.slideshow-movement-bypass.is-active {
+  color: var(--danger);
+  border-color: rgba(255, 129, 114, 0.5);
+  background: var(--danger-soft);
+}
+
+.slideshow-control.slideshow-movement-bypass.is-active:hover {
+  color: var(--danger);
+  border-color: rgba(255, 129, 114, 0.7);
+  background: rgba(255, 129, 114, 0.2);
+}
+
+.slideshow.is-movement-bypassed .slideshow-panel img.image-motion {
+  animation: none;
+}
+
 .slideshow.is-paused #slideshow-pause {
   color: var(--accent);
   border-color: var(--accent-line);
@@ -2141,15 +2157,20 @@ kbd {
   animation-name: slideshowCarouselDrift;
   animation-timing-function: linear;
   animation-fill-mode: both;
+  animation-iteration-count: infinite;
 }
 
 @keyframes slideshowCarouselDrift {
   from { transform: translate3d(0, 0, 0); }
-  to { transform: translate3d(calc(-100% + 100vw), 0, 0); }
+  to { transform: translate3d(var(--carousel-shift, -100%), 0, 0); }
 }
 
 .slideshow.is-paused .slideshow-carousel-track.is-scrolling {
   animation-play-state: paused;
+}
+
+.slideshow.is-movement-bypassed .slideshow-carousel-track.is-scrolling {
+  animation: none;
 }
 
 /* Stack: a deck of images with small offsets. */
@@ -2160,7 +2181,7 @@ kbd {
 
 .layout-stack .slideshow-panel {
   position: absolute;
-  inset: 6% 7%;
+  inset: 12% 5% 5% 20%;
   overflow: hidden;
   border-radius: 10px;
   box-shadow: 0 24px 60px -26px rgba(0, 0, 0, 0.92);
@@ -2584,7 +2605,7 @@ kbd {
   }
 
   .layout-stack .slideshow-panel {
-    inset: 5% 4%;
+    inset: 12% 6% 6% 17%;
   }
 
   .confirm-dialog form {
